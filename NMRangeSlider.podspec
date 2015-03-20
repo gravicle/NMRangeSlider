@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name                = "NMRangeSlider"
-  s.version             = "1.2.2"
+  s.version             = "2.0"
   s.summary             = "A custom range slider for iOS."
   s.homepage            = "https://github.com/muZZkat/NMRangeSlider"
   s.license             = 'MIT'
