@@ -34,13 +34,13 @@ NSUInteger DeviceSystemMajorVersion() {
 @property (retain, nonatomic) UIImageView* trackBackground;
 @property (assign, nonatomic) CGPoint lowerCenter;
 @property (assign, nonatomic) CGPoint upperCenter;
+@property (retain, nonatomic) UILabel *minValueLabel, *maxValueLabel, *midValueLabel, *lowerValueLable, *upperValueLabel;
 
 @end
 
 
 @implementation NMRangeSlider
 
-#pragma mark -
 #pragma mark - Constructors
 
 
@@ -83,6 +83,8 @@ NSUInteger DeviceSystemMajorVersion() {
     _lowerValue = _minimumValue;
     _upperValue = _maximumValue;
     
+    _labelFont = [UIFont systemFontOfSize:13.0];
+    
     _lowerMaximumValue = NAN;
     _upperMinimumValue = NAN;
     _upperHandleHidden = NO;
@@ -93,6 +95,11 @@ NSUInteger DeviceSystemMajorVersion() {
     
     _lowerTouchEdgeInsets = UIEdgeInsetsMake(-5, -5, -5, -5);
     _upperTouchEdgeInsets = UIEdgeInsetsMake(-5, -5, -5, -5);
+    
+    _trackWidth = 14.0;
+    
+    _labelColor = [UIColor colorWithRed:0.6 green:0.6 blue:0.6 alpha:1]; /*#999999*/
+    _activeLabelColor = [UIColor colorWithRed:0.235 green:0.255 blue:0.294 alpha:1]; /*#3c414b*/
 
     [self addSubviews];
 
@@ -109,8 +116,10 @@ NSUInteger DeviceSystemMajorVersion() {
     if ([keyPath isEqual:@"frame"]) {
         if (object == self.lowerHandle) {
             self.lowerCenter = self.lowerHandle.center;
+            [self updateLabels];
         } else if (object == self.upperHandle) {
             self.upperCenter = self.upperHandle.center;
+            [self updateLabels];
         }
     }
 }
@@ -162,6 +171,8 @@ NSUInteger DeviceSystemMajorVersion() {
     value = MAX(value, _lowerValue+_minimumRange);
     
     _upperValue = value;
+    
+    
 
     [self setNeedsLayout];
 }
@@ -218,6 +229,16 @@ NSUInteger DeviceSystemMajorVersion() {
     [self setLowerValue:NAN upperValue:upperValue animated:animated];
 }
 
+- (void)setMinimumValue:(float)minimumValue {
+    _minimumValue = minimumValue;
+    self.minValueLabel.text = [NSString stringWithFormat:@"$%.0f", _minimumValue];
+}
+
+- (void)setMaximumValue:(float)maximumValue {
+    _maximumValue = maximumValue;
+    self.maxValueLabel.text = [NSString stringWithFormat:@"$%.0f", _maximumValue];
+}
+
 - (void) setLowerHandleHidden:(BOOL)lowerHandleHidden
 {
     _lowerHandleHidden = lowerHandleHidden;
@@ -228,6 +249,16 @@ NSUInteger DeviceSystemMajorVersion() {
 {
     _upperHandleHidden = upperHandleHidden;
     [self setNeedsLayout];
+}
+
+- (void)setLabelFont:(UIFont *)labelFont {
+    _labelFont = labelFont;
+    [self configureLabels];
+}
+
+- (void)setActiveLabelFont:(UIFont *)activeLabelFont {
+    _activeLabelFont = activeLabelFont;
+    [self configureLabels];
 }
 
 //ON-Demand images. If the images are not set, then the default values are loaded.
@@ -535,6 +566,8 @@ NSUInteger DeviceSystemMajorVersion() {
     // Track
     self.track = [[UIImageView alloc] initWithImage:[self trackImageForCurrentValues]];
     self.track.frame = [self trackRect];
+    self.track.layer.cornerRadius = self.trackWidth / 2.0;
+    self.track.clipsToBounds = true;
     
     //------------------------------
     // Lower Handle Handle
@@ -550,7 +583,27 @@ NSUInteger DeviceSystemMajorVersion() {
     // Track Brackground
     self.trackBackground = [[UIImageView alloc] initWithImage:self.trackBackgroundImage];
     self.trackBackground.frame = [self trackBackgroundRect];
+    self.trackBackground.layer.cornerRadius = self.trackWidth / 2.0;
+    self.trackBackground.clipsToBounds = true;
     
+    // Value Labels
+    self.minValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, 40.0, 15.0)];
+    self.midValueLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.bounds.size.width - 40.0) / 2.0, 0.0, 40.0, 15.0)];
+    self.maxValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.bounds.size.width - 40.0, 0.0, 40.0, 15.0)];
+    self.lowerValueLable = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, 40.0, 15.0)];
+    self.upperValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, 40.0, 15.0)];
+    
+    self.lowerValueLable.center = CGPointMake(self.lowerCenter.x, self.lowerValueLable.center.y);
+    self.upperValueLabel.center = CGPointMake(self.upperCenter.x, self.upperValueLabel.center.y);
+
+    [self configureLabels];
+    
+    NSArray *labels = @[ self.minValueLabel, self.midValueLabel, self.maxValueLabel, self.lowerValueLable, self.upperValueLabel ];
+    
+    for (UILabel *label in labels) {
+        [self addSubview:label];
+        [label sizeToFit];
+    }
     
     [self addSubview:self.trackBackground];
     [self addSubview:self.track];
@@ -558,6 +611,47 @@ NSUInteger DeviceSystemMajorVersion() {
     [self addSubview:self.upperHandle];
 }
 
+- (void)configureLabels {
+    
+    self.minValueLabel.frame = CGRectMake(0.0, 0.0, 40.0, 15.0);
+    self.midValueLabel.frame = CGRectMake((self.bounds.size.width - 40.0) / 2.0, 0.0, 40.0, 15.0);
+    self.maxValueLabel.frame = CGRectMake(self.bounds.size.width - 40.0, 0.0, 40.0, 15.0);
+    
+    self.minValueLabel.textColor = self.labelColor;
+    self.midValueLabel.textColor = self.labelColor;
+    self.maxValueLabel.textColor = self.labelColor;
+    self.upperValueLabel.textColor = self.activeLabelColor;
+    self.lowerValueLable.textColor = self.activeLabelColor;
+    
+    self.minValueLabel.font = self.labelFont;
+    self.midValueLabel.font = self.labelFont;
+    self.maxValueLabel.font = self.labelFont;
+    self.lowerValueLable.font = self.activeLabelFont;
+    self.upperValueLabel.font = self.activeLabelFont;
+    
+    self.midValueLabel.text = [NSString stringWithFormat:@"$%.0f", (self.minimumValue + self.maximumValue) / 2.0];
+    
+    [self updateLabels];
+}
+
+- (void)updateLabels {
+    NSArray *labels = @[ self.minValueLabel, self.midValueLabel, self.maxValueLabel, self.lowerValueLable, self.upperValueLabel ];
+
+    for (UILabel *label in labels) {
+        [label sizeToFit];
+    }
+    
+    self.lowerValueLable.center = CGPointMake(self.lowerCenter.x, self.lowerValueLable.center.y);
+    self.upperValueLabel.center = CGPointMake(self.upperCenter.x, self.upperValueLabel.center.y);
+    
+    self.lowerValueLable.text = [NSString stringWithFormat:@"$%.0f", self.lowerValue];
+    self.upperValueLabel.text = [NSString stringWithFormat:@"$%.0f", self.upperValue];
+    
+    // Manage Hiding
+    self.minValueLabel.alpha = (CGRectIntersectsRect(self.minValueLabel.frame, self.lowerValueLable.frame)) ? 0.0 : 1.0;
+    self.maxValueLabel.alpha = (CGRectIntersectsRect(self.maxValueLabel.frame, self.upperValueLabel.frame)) ? 0.0 : 1.0;
+    self.midValueLabel.alpha = (CGRectIntersectsRect(self.midValueLabel.frame, self.lowerValueLable.frame) || CGRectIntersectsRect(self.midValueLabel.frame, self.upperValueLabel.frame)) ? 0.0 : 1.0;
+}
 
 -(void)layoutSubviews
 {
@@ -588,6 +682,8 @@ NSUInteger DeviceSystemMajorVersion() {
     self.upperHandle.highlightedImage = self.upperHandleImageHighlighted;
     self.upperHandle.hidden= self.upperHandleHidden;
     
+    // Labels
+    [self configureLabels];
 }
 
 - (CGSize)intrinsicContentSize
@@ -620,7 +716,7 @@ NSUInteger DeviceSystemMajorVersion() {
         _upperTouchOffset = touchPoint.x - _upperHandle.center.x;
     }
     
-    _stepValueInternal= _stepValueContinuously ? _stepValue : 0.0f;
+    _stepValueInternal = _stepValueContinuously ? _stepValue : 0.0f;
     
     return YES;
 }
