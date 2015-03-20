@@ -49,6 +49,11 @@
 // minimum value for right thumb
 @property(assign, nonatomic) float upperMinimumValue;
 
+// default: [UIFont systemFontOfSize:13.0];
+@property(retain, nonatomic) UIFont *labelFont, *activeLabelFont;
+
+@property(retain, nonatomic) UIColor *labelColor, *activeLabelColor;
+
 @property (assign, nonatomic) UIEdgeInsets lowerTouchEdgeInsets;
 @property (assign, nonatomic) UIEdgeInsets upperTouchEdgeInsets;
 
@@ -72,6 +77,8 @@
 @property(retain, nonatomic) UIImage* upperHandleImageHighlighted;
 
 @property(retain, nonatomic) UIImage* trackImage;
+
+@property(assign, nonatomic) CGFloat trackWidth;
 
 // track image when lower value is higher than the upper value (eg. when minimum range is negative
 @property(retain, nonatomic) UIImage* trackCrossedOverImage;
