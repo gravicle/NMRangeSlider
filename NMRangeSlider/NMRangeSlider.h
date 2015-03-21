@@ -88,6 +88,7 @@
 @property (retain, nonatomic) UIImageView* lowerHandle;
 @property (retain, nonatomic) UIImageView* upperHandle;
 
+@property (retain, nonatomic) NSString *maxLabelText;
 
 - (void)addSubviews;
 

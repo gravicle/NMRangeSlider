@@ -100,6 +100,8 @@ NSUInteger DeviceSystemMajorVersion() {
     
     _labelColor = [UIColor colorWithRed:0.6 green:0.6 blue:0.6 alpha:1]; /*#999999*/
     _activeLabelColor = [UIColor colorWithRed:0.235 green:0.255 blue:0.294 alpha:1]; /*#3c414b*/
+    
+    _maxLabelText = @"MAX";
 
     [self addSubviews];
 
@@ -227,6 +229,11 @@ NSUInteger DeviceSystemMajorVersion() {
 - (void)setUpperValue:(float)upperValue animated:(BOOL) animated
 {
     [self setLowerValue:NAN upperValue:upperValue animated:animated];
+}
+
+- (void)setMaxLabelText:(NSString *)maxLabelText {
+    _maxLabelText = maxLabelText;
+    self.maxValueLabel.text = maxLabelText;
 }
 
 - (void)setMinimumValue:(float)minimumValue {
@@ -645,7 +652,7 @@ NSUInteger DeviceSystemMajorVersion() {
     self.upperValueLabel.center = CGPointMake(self.upperCenter.x, self.upperValueLabel.center.y);
     
     self.lowerValueLable.text = [NSString stringWithFormat:@"$%.0f", self.lowerValue];
-    self.upperValueLabel.text = [NSString stringWithFormat:@"$%.0f", self.upperValue];
+    self.upperValueLabel.text = (self.upperValue == self.maximumValue) ? self.maxLabelText : [NSString stringWithFormat:@"$%.0f", self.upperValue];
     
     // Manage Hiding
     self.minValueLabel.alpha = (CGRectIntersectsRect(self.minValueLabel.frame, self.lowerValueLable.frame)) ? 0.0 : 1.0;
